@@ -1,10 +1,12 @@
 <x-guest-layout>
+    @section('title') {{'Iniciar sesión'}} @endsection
+
     <div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-6 py-4 sm:py-12">
 
         <div class="max-w-4xl w-full grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-0 login-container" style="opacity: 0; transition: opacity 0.5s ease-in-out;">
 
             <div class="flex justify-center items-center">
-                <img src="https://www.cotecmar.com/sites/default/files/media/imagenes/2023-12/CotecmarLogo.png" alt="Cotecmar Logo" class="object-contain h-20 sm:h-60">
+                <img src="https://www.cotecmar.com/sites/default/files/media/imagenes/2023-12/CotecmarLogo.png" alt="Cotecmar Logo" class="object-contain h-20 sm:h-60" draggable="false">
             </div>
 
             <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex justify-center items-center">
@@ -38,6 +40,7 @@
             </div>
         </div>
     </div>
+
 
     @push('scripts')
     <script>
