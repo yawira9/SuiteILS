@@ -2,10 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Redirigir la raíz a la ruta de inicio de sesión
+Route::redirect('/', '/login');
 
+// Agrupación de rutas que requieren autenticación
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -15,3 +15,4 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 });
+
