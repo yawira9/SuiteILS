@@ -11,7 +11,9 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.0",
-        "protonemedia/laravel-splade": "^1.4"
+        "maatwebsite/excel": "^1.1",
+        "protonemedia/laravel-splade": "^1.4",
+        "spatie/laravel-permission": "^6.7"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

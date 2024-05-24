@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Buque extends Model {
+class Buque extends Model
+{
     use HasFactory;
 
     protected $fillable = [
@@ -19,5 +20,11 @@ class Buque extends Model {
 
     public function user() {
         return $this->belongsTo(User::class);
+    }
+
+    public function sistemasEquipos() {
+        return $this->belongsToMany(SistemasEquipos::class, 'buque_sistemas_equipos')
+                    ->withPivot('mec')
+                    ->withTimestamps();
     }
 }
