@@ -59,7 +59,7 @@
                                     <a href="{{ route('buques.edit', $buque->id) }}" class="bg-blue-500 text-white px-2 py-1 rounded">
                                         <i class="fas fa-pencil-alt"></i>
                                     </a>
-                                    <button type="button" class="bg-red-500 text-white px-2 py-1 rounded delete-button" data-id="{{ $buque->id }}">
+                                    <button type="button" class="bg-red-600 text-white px-2 py-1 rounded delete-button" data-id="{{ $buque->id }}">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                     <form id="delete-form-{{ $buque->id }}" action="{{ route('buques.destroy', $buque->id) }}" method="POST" style="display: none;">

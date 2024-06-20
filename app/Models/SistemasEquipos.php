@@ -19,7 +19,7 @@ class SistemasEquipos extends Model
 
     public function buques() {
         return $this->belongsToMany(Buque::class, 'buque_sistemas_equipos')
-                    ->withPivot('mec')
+                    ->withPivot('mec', 'diagrama_id')
                     ->withTimestamps();
     }
 }

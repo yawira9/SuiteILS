@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BuquesController;
 use App\Http\Controllers\UserController;
@@ -27,16 +26,29 @@ Route::middleware([
     Route::get('/buques', [BuquesController::class, 'index'])->name('buques.index');
     Route::get('/buques/{buque}/sistemas-equipos', [BuquesController::class, 'getSistemasEquipos']);
 
-    // Ruta para mostrar los detalles del buque
-    Route::get('/buques/{buque}', [BuquesController::class, 'show'])->name('buques.show');
-
     Route::get('/buques/{buque}/mod_gres', [BuquesController::class, 'showGres'])->name('buques.gres');
     Route::get('/buques/{buque}/mod_fua', [BuquesController::class, 'showFua'])->name('buques.fua');
 
-    // Ruta para actualizar el MEC de un sistema de equipo específico para un buque
     Route::put('/buques/{buque}/sistemas-equipos/{equipo}/mec', [BuquesController::class, 'updateMEC']);
+    Route::put('/buques/{buque}/sistemas-equipos/{equipo}/titulo', [BuquesController::class, 'updateEquipoTitulo']);
+    Route::post('/buques/{buque}/sistemas-equipos', [BuquesController::class, 'storeSistemaEquipo']);
+
+    Route::get('/buques/{buque}/view-pdf', [BuquesController::class, 'showPdf'])->name('buques.viewPdf');
+    Route::get('/buques/{buque}/export-pdf', [BuquesController::class, 'exportPdf'])->name('buques.exportPdf');
+
+    Route::get('/buques/{buque}/mod_gres2', [BuquesController::class, 'showGres2'])->name('buques.gres2');
+
+
+    // Ruta para guardar colaboradores
+    Route::post('/buques/{buque}/save-collaborators', [BuquesController::class, 'saveCollaborators'])->name('buques.saveCollaborators');
+    Route::delete('/buques/colaborador/{id}', [BuquesController::class, 'deleteCollaborator'])->name('buques.deleteCollaborator');
+
+    Route::put('/buques/{buque}/sistemas-equipos/{equipo}/mec', [BuquesController::class, 'updateMec']);
+    Route::post('/buques/{buque}/sistemas-equipos/{equipo}/save-observations', [BuquesController::class, 'saveObservations']);
+
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 });
+
