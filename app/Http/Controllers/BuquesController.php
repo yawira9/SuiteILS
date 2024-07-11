@@ -194,6 +194,20 @@ class BuquesController extends Controller
 
     public function showGres(Buque $buque) {
         $sistemasEquipos = $buque->sistemasEquipos()->withPivot('mec', 'image', 'titulo', 'diagrama_id')->get();
+        
+        foreach ($sistemasEquipos as &$equipo) {
+            if ($equipo->pivot->image) {
+                $path = 'public/' . $equipo->pivot->image;
+                if (Storage::exists($path)) {
+                    $equipo->pivot->base64Image = 'data:image/png;base64,' . base64_encode(Storage::get($path));
+                } else {
+                    $equipo->pivot->base64Image = null;
+                }
+            } else {
+                $equipo->pivot->base64Image = null;
+            }
+        }
+    
         return view('buques.gres', compact('buque', 'sistemasEquipos'));
     }
 
@@ -205,15 +219,15 @@ class BuquesController extends Controller
     public function updateMec(Request $request, Buque $buque, $equipoId) {
         $mec = $request->input('mec');
         $image = $request->input('image');
-        $diagramaId = $request->input('diagrama_id'); // Asumiendo que se envía el ID del diagrama
-
-        // Actualizar solo el equipo específico
+        
+        // Asegúrate de que $image solo contiene el nombre del archivo
+        $image = basename($image);
+    
         $buque->sistemasEquipos()->updateExistingPivot($equipoId, [
             'mec' => $mec,
             'image' => $image,
-            'diagrama_id' => $diagramaId
         ]);
-
+    
         return response()->json(['message' => 'MEC actualizado correctamente']);
     }
 
@@ -254,13 +268,22 @@ class BuquesController extends Controller
 
     public function exportPdf($buqueId) {
         $buque = Buque::findOrFail($buqueId);
-        $sistemasEquipos = $buque->sistemasEquipos;
-
+        $sistemasEquipos = $buque->sistemasEquipos()->withPivot('mec', 'image', 'titulo', 'diagrama_id')->get();
+    
+        foreach ($sistemasEquipos as &$equipo) {
+            if (!empty($equipo->pivot->image)) {
+                $equipo->pivot->imageUrl = Storage::disk('public')->url($equipo->pivot->image);
+            } else {
+                $equipo->pivot->imageUrl = asset('storage/images/ImageNullGres.png');
+            }
+        }
+    
         $pdf = Pdf::loadView('buques.pdf', compact('buque', 'sistemasEquipos'))
                   ->setPaper('letter', 'portrait');
-
+    
         return $pdf->stream('GRES_' . $buque->nombre_proyecto . '.pdf');
     }
+    
 
     public function showPdf($buqueId) {
         $buque = Buque::findOrFail($buqueId);

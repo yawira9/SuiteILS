@@ -22,7 +22,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('{{ public_path('storage/images/aaaa.png') }}');
+            background-image: url('{{ public_path('storage/images/BackgroundPDF.png') }}');
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
@@ -44,11 +44,11 @@
             page-break-after: always;
         }
         .content {
-            padding: 50px; /* Usamos padding en lugar de margin para aplicar margen interno */
+            padding: 50px;
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
-            box-sizing: border-box; /* Para asegurarnos de que el padding esté dentro del área del contenido */
+            box-sizing: border-box;
         }
         .cover-page {
             display: flex;
@@ -63,9 +63,10 @@
         .cover-page h1 {
             color: #1c345c;
         }
-        h2, p {
+        h2, p, h3 {
             margin: 0 0 10px 0;
             word-wrap: break-word;
+            color: #1c345c;
         }
         .collaborators {
             margin-top: 20px;
@@ -82,17 +83,34 @@
         .table th, .table td {
             border: 1px solid #ddd;
             padding: 8px;
+            font-size: 12px; /* Letra más pequeña */
         }
         .table th {
-            background-color: #f2f2f2;
+            background-color: #1c345c;
+            color: white;
             text-align: left;
+        }
+        .table td:first-child {
+            width: 10%; /* Columna de pregunta más pequeña */
+        }
+        .table td:last-child {
+            width: 90%; /* Columna de observación más ancha */
+        }
+        .image-container {
+            margin-top: 10px;
+            text-align: left; /* Orienta la imagen a la izquierda */
+            margin-bottom: 10px;
+        }
+        .image-container img {
+            width: 65%; /* Ajusta el tamaño según tus necesidades */
+            height: auto;
+            border: 1px solid #1c345c; /* Borde de color #1c345c */
         }
     </style>
 </head>
 <body>
     <div class="background"></div>
     
-    <!-- Primera página con solo el título -->
     <div class="cover-page">
         <h1>ANEXO GRES: {{ $buque->nombre_proyecto }}</h1>
         <div class="collaborators">
@@ -107,15 +125,18 @@
     <div class="content">
         @foreach($sistemasEquipos as $equipo)
             <div>
-                <h2>{{ $equipo['mfun'] }}: {{ $equipo['titulo'] }}</h2>
-                <p>MEC: {{ $equipo['pivot']['mec'] }}</p>
-                <p>Observaciones Generales: {{ $equipo['pivot']['observaciones'] }}</p>
-                @if(!empty($equipo['pivot']['base64Image']))
+                <h3>{{ $equipo['mfun'] }}: {{ strtoupper($equipo['titulo']) }}</h3>
+                <h3>{{ $equipo['pivot']['mec'] }}</h3>
+                <p>Diagrama de decisiones:</p>
+                @if(!empty($equipo->pivot->image))
                     <div class="image-container">
-                        <img src="{{ $equipo['pivot']['base64Image'] }}" alt="Diagrama de {{ $equipo['titulo'] }}" style="width: 100%; max-width: 600px; height: auto; margin-top: 10px;">
+                        
+                        <img src="{{ $equipo->pivot->image }}" alt="Diagrama de {{ $equipo['titulo'] }}">
                     </div>
+                @else
+                    <p>No hay imagen disponible para este diagrama.</p>
                 @endif
-                <h3>Observaciones Detalladas:</h3>
+                <p>Observaciones Detalladas:</p>
                 <table class="table">
                     <thead>
                         <tr>
@@ -130,7 +151,7 @@
                                     <td>{{ $preguntasMap[$pregunta] }}</td>
                                     <td>{{ $observacion }}</td>
                                 </tr>
-                            @endforeach
+                            @endforeach                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
                         @else
                             <tr>
                                 <td colspan="2">No hay observaciones.</td>

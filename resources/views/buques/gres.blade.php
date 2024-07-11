@@ -8,7 +8,7 @@
                         <i class="fas fa-arrow-left mr-2"></i>
                     </a>
                     <h1 class="text-2xl font-bold ml-2" style="font-family: 'Inter', sans-serif;">
-                        Módulo GRES: <span style="text-transform: uppercase; color: #1862B0;">{{ $buque->nombre_proyecto }}</span>
+                        Módulo GRES EQUIPOS: <span style="text-transform: uppercase; color: #1862B0;">{{ $buque->nombre_proyecto }}</span>
                     </h1>
                 </div>
             </div>
@@ -172,341 +172,344 @@ function gresData() {
             this.selectedImage = image || this.imagesPorEquipo[id] || null;
             this.actualizarObservacionesTabla();
         },
-
         getImageSrc(image) {
             if (!image) {
-                return `{{ url('storage/images/ImageNullGres.png') }}`;
+                return '/storage/images/ImageNullGres.png';
             }
-            return `{{ url('storage') }}/${image}`;
+            // Eliminar cualquier 'diagramas/' adicional del inicio del nombre de la imagen
+            image = image.replace(/^diagramas\//, '');
+            return `/storage/diagramas/${image}`;
         },
 
-            getMec(id) {
-                let equipo = this.equipos.find(e => e.id == id);
-                return equipo ? equipo.pivot.mec : 'MEC sin asignar';
-            },
+        getMec(id) {
+            let equipo = this.equipos.find(e => e.id == id);
+            return equipo ? equipo.pivot.mec : 'MEC sin asignar';
+        },
 
-            getEquipoTitulo(id, defaultTitulo) {
-                let equipo = this.equipos.find(e => e.id == id);
-                return equipo ? (equipo.pivot.titulo || defaultTitulo) : defaultTitulo;
-            },
+        getEquipoTitulo(id, defaultTitulo) {
+            let equipo = this.equipos.find(e => e.id == id);
+            return equipo ? (equipo.pivot.titulo || defaultTitulo) : defaultTitulo;
+        },
 
-            updateEquipoTitulo(id, titulo) {
-                fetch(`/buques/{{ $buque->id }}/sistemas-equipos/${id}/titulo`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ titulo: titulo })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === 'Título actualizado correctamente') {
-                        let equipo = this.equipos.find(e => e.id == id);
-                        if (equipo) {
-                            equipo.pivot.titulo = titulo;
-                        }
-                        Swal.fire('Actualizado', 'Título actualizado correctamente', 'success');
-                    } else {
-                        Swal.fire('Error', 'No se pudo actualizar el título', 'error');
+        updateEquipoTitulo(id, titulo) {
+            fetch(`/buques/{{ $buque->id }}/sistemas-equipos/${id}/titulo`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ titulo: titulo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Título actualizado correctamente') {
+                    let equipo = this.equipos.find(e => e.id == id);
+                    if (equipo) {
+                        equipo.pivot.titulo = titulo;
                     }
-                });
-            },
-
-            asignarMec() {
-                this.decisionPath = '';
-                this.pregunta1();
-            },
-
-            pregunta1() {
-                Swal.fire({
-                    title: '¿SE PIERDE LA CAPACIDAD DEL SISTEMA SI EL EQUIPO QUEDA INOPERATIVO?',
-                    text: 'Describa la capacidad que se pierde en caso de ser afirmativo',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí',
-                    denyButtonText: 'No',
-                    cancelButtonText: 'Observaciones',
-                    cancelButtonColor: '#3dd960',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.decisionPath += '1';
-                        this.pregunta2();
-                    } else if (result.isDenied) {
-                        this.decisionPath += '0';
-                        this.updateMec('MEC 1', 'diagramas/0.png');
-                    } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-                        this.mostrarPopupObservaciones('pregunta1');
-                    }
-                });
-            },
-
-            pregunta2() {
-                Swal.fire({
-                    title: '¿REPRESENTA UN EFECTO ADVERSO SOBRE EL PERSONAL, EL SISTEMA O EL MEDIO AMBIENTE?',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí',
-                    denyButtonText: 'No',
-                    cancelButtonText: 'Observaciones',
-                    cancelButtonColor: '#3dd960',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.decisionPath += '1';
-                        this.pregunta3();
-                    } else if (result.isDenied) {
-                        this.decisionPath += '0';
-                        this.pregunta4();
-                    } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-                        this.mostrarPopupObservaciones('pregunta2');
-                    }
-                });
-            },
-
-            pregunta3() {
-                Swal.fire({
-                    title: '¿EXISTEN REDUNDANCIAS DENTRO DEL SISTEMA PARA MITIGAR EL EFECTO ADVERSO PROVOCADO?',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí',
-                    denyButtonText: 'No',
-                    cancelButtonText: 'Observaciones',
-                    cancelButtonColor: '#3dd960',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.decisionPath += '1';
-                        this.pregunta4();
-                    } else if (result.isDenied) {
-                        this.decisionPath += '0';
-                        this.updateMec('MEC 4', 'diagramas/110.png');
-                    } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-                        this.mostrarPopupObservaciones('pregunta3');
-                    }
-                });
-            },
-
-            pregunta4() {
-                Swal.fire({
-                    title: '¿LA CADENA DE SUCESOS CAUSA ALGUNA DEGRADACIÓN SOBRE ALGUNA DE LAS MISIONES?',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí',
-                    denyButtonText: 'No',
-                    cancelButtonText: 'Observaciones',
-                    cancelButtonColor: '#3dd960',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.decisionPath += '1';
-                        this.pregunta5();
-                    } else if (result.isDenied) {
-                        this.decisionPath += '0';
-                        this.updateMec('MEC 1', 'diagramas/1110.png');
-                    } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-                        this.mostrarPopupObservaciones('pregunta4');
-                    }
-                });
-            },
-
-            pregunta5() {
-                Swal.fire({
-                    title: '¿EXISTEN REDUNDANCIAS DENTRO DEL SUBSISTEMA?',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí',
-                    denyButtonText: 'No',
-                    cancelButtonText: 'Observaciones',
-                    cancelButtonColor: '#3dd960',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.decisionPath += '1';
-                        this.pregunta6();
-                    } else if (result.isDenied) {
-                        this.decisionPath += '0';
-                        this.pregunta7();
-                    } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-                        this.mostrarPopupObservaciones('pregunta5');
-                    }
-                });
-            },
-
-            pregunta6() {
-                Swal.fire({
-                    title: '¿MITIGA COMPLETAMENTE EL EFECTO DE LA DEGRADACIÓN?',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí',
-                    denyButtonText: 'No',
-                    cancelButtonText: 'Observaciones',
-                    cancelButtonColor: '#3dd960',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.updateMec('MEC 1', 'diagramas/111111.png');
-                    } else if (result.isDenied) {
-                        this.decisionPath += '0';
-                        this.pregunta7();
-                    } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-                        this.mostrarPopupObservaciones('pregunta6');
-                    }
-                });
-            },
-
-            pregunta7() {
-                Swal.fire({
-                    title: '¿DE QUÉ TAMAÑO SERÍAN LAS PÉRDIDAS?',
-                    showDenyButton: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Menores o una misión',
-                    denyButtonText: 'Más de una misión',
-                    cancelButtonText: 'Observaciones',
-                    cancelButtonColor: '#3dd960',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.decisionPath += '1';
-                        this.updateMec('MEC 2', this.getDiagramImage());
-                    } else if (result.isDenied) {
-                        this.decisionPath += '0';
-                        this.updateMec('MEC 3', this.getDiagramImage());
-                    } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-                        this.mostrarPopupObservaciones('pregunta7');
-                    }
-                });
-            },
-
-            getDiagramImage() {
-                const diagramMap = {
-                    '0': '0.png',
-                    '100': '100.png',
-                    '110': '110.png',
-                    '1110': '1110.png',
-                    '10100': '10100.png',
-                    '10101': '10101.png',
-                    '10111': '10111.png',
-                    '101100': '101100.png',
-                    '101101': '101101.png',
-                    '111100': '111100.png',
-                    '111101': '111101.png',
-                    '111111': '111111.png',
-                    '1111100': '1111100.png',
-                    '1111101': '1111101.png'
-                };
-                return `{{ url('storage/diagramas') }}/${diagramMap[this.decisionPath] || '0.png'}`;
-            },
-
-            updateMec(mec, image) {
-                const equipoSeleccionado = this.equipos.find(e => e.id == this.selectedEquipo);
-
-                fetch(`/buques/{{ $buque->id }}/sistemas-equipos/${this.selectedEquipo}/mec`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ mec: mec, image: image, observaciones: this.observacionesPorEquipo[this.selectedEquipo] || {} })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === 'MEC actualizado correctamente') {
-                        equipoSeleccionado.pivot.mec = mec;
-                        equipoSeleccionado.pivot.image = image;
-                        this.imagesPorEquipo[this.selectedEquipo] = image;
-                        this.selectedMec = mec;
-                        this.selectedImage = image;
-
-                        let imagenElement = document.querySelector('.absolute-image img');
-                        if (imagenElement) {
-                            imagenElement.src = this.getImageSrc(this.selectedImage);
-                            imagenElement.dataset.imageSrc = this.selectedImage;
-                        }
-
-                        Swal.fire('Actualizado', 'MEC actualizado correctamente', 'success');
-                    } else {
-                        Swal.fire('Error', 'No se pudo actualizar el MEC', 'error');
-                    }
-                });
-            },
-
-            mostrarPopupObservaciones(pregunta) {
-                const _this = this;
-                Swal.fire({
-                    title: 'Observaciones',
-                    html: `<textarea id="observaciones-textarea" class="swal2-textarea" placeholder="Escribe tus observaciones aquí...">${this.observacionesPorEquipo[this.selectedEquipo] && this.observacionesPorEquipo[this.selectedEquipo][pregunta] ? this.observacionesPorEquipo[this.selectedEquipo][pregunta] : ''}</textarea>`,
-                    showCancelButton: true,
-                    confirmButtonText: 'Guardar',
-                    cancelButtonText: 'Cancelar',
-                    preConfirm: () => {
-                        const observaciones = Swal.getPopup().querySelector('#observaciones-textarea').value;
-                        if (!_this.observacionesPorEquipo[_this.selectedEquipo]) {
-                            _this.observacionesPorEquipo[_this.selectedEquipo] = {};
-                        }
-                        _this.observacionesPorEquipo[_this.selectedEquipo][pregunta] = observaciones;
-
-                        localStorage.setItem('observacionesPorEquipo', JSON.stringify(_this.observacionesPorEquipo));
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire('Guardado', 'Tus observaciones han sido guardadas.', 'success').then(() => {
-                            _this.actualizarObservacionesTabla();
-                            _this[pregunta](); 
-                        });
-                    } else if (result.isDismissed) {
-                        _this[pregunta](); 
-                    }
-                });
-            },
-
-            validateCJ(cj) {
-                const regex = /^[0-9]{4}[0-9A-Za-z]$/;
-                return regex.test(cj);
-            },
-
-            addEquipo(cj, nombre) {
-                fetch(`/buques/{{ $buque->id }}/sistemas-equipos`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ mfun: cj, titulo: nombre })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message === 'Equipo agregado correctamente') {
-                        this.equipos.push(data.equipo);
-                        Swal.fire('Agregado', 'Nuevo equipo agregado correctamente', 'success');
-                    } else {
-                        Swal.fire('Error', 'No se pudo agregar el equipo', 'error');
-                    }
-                });
-            },
-
-            copyData() {
-                alert('Funcionalidad de copiar implementada');
-            },
-
-            viewPdf() {
-                window.location.href = `{{ route('buques.viewPdf', ['buque' => $buque->id]) }}`;
-            },
-
-            actualizarObservacionesTabla() {
-                const observacionesDiv = document.getElementById('observaciones-tabla');
-                let observacionesHTML = '<table class="min-w-full divide-y divide-gray-200"><thead><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pregunta</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observación</th></tr></thead><tbody>';
-                
-                if (this.observacionesPorEquipo[this.selectedEquipo]) {
-                    for (const [pregunta, observacion] of Object.entries(this.observacionesPorEquipo[this.selectedEquipo])) {
-                        observacionesHTML += `<tr><td class="px-6 py-4 whitespace-nowrap">${pregunta}</td><td class="px-6 py-4 whitespace-nowrap">${observacion}</td></tr>`;
-                    }
+                    Swal.fire('Actualizado', 'Título actualizado correctamente', 'success');
+                } else {
+                    Swal.fire('Error', 'No se pudo actualizar el título', 'error');
                 }
-                
-                observacionesHTML += '</tbody></table>';
-                observacionesDiv.innerHTML = observacionesHTML;
-            },
-        }
-    }
+            });
+        },
 
-    document.getElementById('viewPdfButton').addEventListener('click', function() {
-        window.open(`{{ route('buques.viewPdf', ['buque' => $buque->id]) }}`, '_blank');
-    });
-    </script>
+        asignarMec() {
+            this.decisionPath = '';
+            this.pregunta1();
+        },
+
+        pregunta1() {
+            Swal.fire({
+                title: '¿SE PIERDE LA CAPACIDAD DEL SISTEMA SI EL EQUIPO QUEDA INOPERATIVO?',
+                text: 'Describa la capacidad que se pierde en caso de ser afirmativo',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sí',
+                denyButtonText: 'No',
+                cancelButtonText: 'Observaciones',
+                cancelButtonColor: '#3dd960',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.decisionPath += '1';
+                    this.pregunta2();
+                } else if (result.isDenied) {
+                    this.decisionPath += '0';
+                    this.updateMec('MEC 1', '0.png');
+                } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                    this.mostrarPopupObservaciones('pregunta1');
+                }
+            });
+        },
+
+        pregunta2() {
+            Swal.fire({
+                title: '¿REPRESENTA UN EFECTO ADVERSO SOBRE EL PERSONAL, EL SISTEMA O EL MEDIO AMBIENTE?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sí',
+                denyButtonText: 'No',
+                cancelButtonText: 'Observaciones',
+                cancelButtonColor: '#3dd960',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.decisionPath += '1';
+                    this.pregunta3();
+                } else if (result.isDenied) {
+                    this.decisionPath += '0';
+                    this.pregunta4();
+                } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                    this.mostrarPopupObservaciones('pregunta2');
+                }
+            });
+        },
+
+        pregunta3() {
+            Swal.fire({
+                title: '¿EXISTEN REDUNDANCIAS DENTRO DEL SISTEMA PARA MITIGAR EL EFECTO ADVERSO PROVOCADO?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sí',
+                denyButtonText: 'No',
+                cancelButtonText: 'Observaciones',
+                cancelButtonColor: '#3dd960',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.decisionPath += '1';
+                    this.pregunta4();
+                } else if (result.isDenied) {
+                    this.decisionPath += '0';
+                    this.updateMec('MEC 4', '110.png');
+                } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                    this.mostrarPopupObservaciones('pregunta3');
+                }
+            });
+        },
+
+        pregunta4() {
+            Swal.fire({
+                title: '¿LA CADENA DE SUCESOS CAUSA ALGUNA DEGRADACIÓN SOBRE ALGUNA DE LAS MISIONES?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sí',
+                denyButtonText: 'No',
+                cancelButtonText: 'Observaciones',
+                cancelButtonColor: '#3dd960',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.decisionPath += '1';
+                    this.pregunta5();
+                } else if (result.isDenied) {
+                    this.decisionPath += '0';
+                    this.updateMec('MEC 1', '1110.png');
+                } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                    this.mostrarPopupObservaciones('pregunta4');
+                }
+            });
+        },
+
+        pregunta5() {
+            Swal.fire({
+                title: '¿EXISTEN REDUNDANCIAS DENTRO DEL SUBSISTEMA?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sí',
+                denyButtonText: 'No',
+                cancelButtonText: 'Observaciones',
+                cancelButtonColor: '#3dd960',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.decisionPath += '1';
+                    this.pregunta6();
+                } else if (result.isDenied) {
+                    this.decisionPath += '0';
+                    this.pregunta7();
+                } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                    this.mostrarPopupObservaciones('pregunta5');
+                }
+            });
+        },
+
+        pregunta6() {
+            Swal.fire({
+                title: '¿MITIGA COMPLETAMENTE EL EFECTO DE LA DEGRADACIÓN?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Sí',
+                denyButtonText: 'No',
+                cancelButtonText: 'Observaciones',
+                cancelButtonColor: '#3dd960',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.updateMec('MEC 1', '111111.png');
+                } else if (result.isDenied) {
+                    this.decisionPath += '0';
+                    this.pregunta7();
+                } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                    this.mostrarPopupObservaciones('pregunta6');
+                }
+            });
+        },
+
+        pregunta7() {
+            Swal.fire({
+                title: '¿DE QUÉ TAMAÑO SERÍAN LAS PÉRDIDAS?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Menores o una misión',
+                denyButtonText: 'Más de una misión',
+                cancelButtonText: 'Observaciones',
+                cancelButtonColor: '#3dd960',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.decisionPath += '1';
+                    this.updateMec('MEC 2', this.getDiagramImage());
+                } else if (result.isDenied) {
+                    this.decisionPath += '0';
+                    this.updateMec('MEC 3', this.getDiagramImage());
+                } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                    this.mostrarPopupObservaciones('pregunta7');
+                }
+            });
+        },
+
+        getDiagramImage() {
+            const diagramMap = {
+                '0': '0.png',
+                '100': '100.png',
+                '110': '110.png',
+                '1110': '1110.png',
+                '10100': '10100.png',
+                '10101': '10101.png',
+                '10111': '10111.png',
+                '101100': '101100.png',
+                '101101': '101101.png',
+                '111100': '111100.png',
+                '111101': '111101.png',
+                '111111': '111111.png',
+                '1111100': '1111100.png',
+                '1111101': '1111101.png'
+            };
+            return diagramMap[this.decisionPath] || '0.png';
+        },
+
+        updateMec(mec, image) {
+            const equipoSeleccionado = this.equipos.find(e => e.id == this.selectedEquipo);
+
+            fetch(`/buques/{{ $buque->id }}/sistemas-equipos/${this.selectedEquipo}/mec`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ mec: mec, image: image, observaciones: this.observacionesPorEquipo[this.selectedEquipo] || {} })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'MEC actualizado correctamente') {
+                    equipoSeleccionado.pivot.mec = mec;
+                    equipoSeleccionado.pivot.image = image;
+                    this.imagesPorEquipo[this.selectedEquipo] = image;
+                    this.selectedMec = mec;
+                    this.selectedImage = image;
+
+                    let imagenElement = document.querySelector('.absolute-image img');
+                    if (imagenElement) {
+                        imagenElement.src = this.getImageSrc(this.selectedImage);
+                        imagenElement.dataset.imageSrc = this.selectedImage;
+                    }
+
+                    Swal.fire('Actualizado', 'MEC actualizado correctamente', 'success');
+                } else {
+                    Swal.fire('Error', 'No se pudo actualizar el MEC', 'error');
+                }
+            });
+        },
+
+        mostrarPopupObservaciones(pregunta) {
+            const _this = this;
+            Swal.fire({
+                title: 'Observaciones',
+                html: `<textarea id="observaciones-textarea" class="swal2-textarea" placeholder="Escribe tus observaciones aquí...">${this.observacionesPorEquipo[this.selectedEquipo] && this.observacionesPorEquipo[this.selectedEquipo][pregunta] ? this.observacionesPorEquipo[this.selectedEquipo][pregunta] : ''}</textarea>`,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const observaciones = Swal.getPopup().querySelector('#observaciones-textarea').value;
+                    if (!_this.observacionesPorEquipo[_this.selectedEquipo]) {
+                        _this.observacionesPorEquipo[_this.selectedEquipo] = {};
+                    }
+                    _this.observacionesPorEquipo[_this.selectedEquipo][pregunta] = observaciones;
+
+                    localStorage.setItem('observacionesPorEquipo', JSON.stringify(_this.observacionesPorEquipo));
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('Guardado', 'Tus observaciones han sido guardadas.', 'success').then(() => {
+                        _this.actualizarObservacionesTabla();
+                        _this[pregunta](); 
+                    });
+                } else if (result.isDismissed) {
+                    _this[pregunta](); 
+                }
+            });
+        },
+
+        validateCJ(cj) {
+            const regex = /^[0-9]{4}[0-9A-Za-z]$/;
+            return regex.test(cj);
+        },
+
+        addEquipo(cj, nombre) {
+            fetch(`/buques/{{ $buque->id }}/sistemas-equipos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ mfun: cj, titulo: nombre })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Equipo agregado correctamente') {
+                    this.equipos.push(data.equipo);
+                    Swal.fire('Agregado', 'Nuevo equipo agregado correctamente', 'success');
+                } else {
+                    Swal.fire('Error', 'No se pudo agregar el equipo', 'error');
+                }
+            });
+        },
+
+        copyData() {
+            alert('Funcionalidad de copiar implementada');
+        },
+
+        viewPdf() {
+            window.location.href = `{{ route('buques.viewPdf', ['buque' => $buque->id]) }}`;
+        },
+
+        actualizarObservacionesTabla() {
+            const observacionesDiv = document.getElementById('observaciones-tabla');
+            let observacionesHTML = '<table class="min-w-full divide-y divide-gray-200"><thead><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pregunta</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observación</th></tr></thead><tbody>';
+            
+            if (this.observacionesPorEquipo[this.selectedEquipo]) {
+                for (const [pregunta, observacion] of Object.entries(this.observacionesPorEquipo[this.selectedEquipo])) {
+                    observacionesHTML += `<tr><td class="px-6 py-4 whitespace-nowrap">${pregunta}</td><td class="px-6 py-4 whitespace-nowrap">${observacion}</td></tr>`;
+                }
+            }
+            
+            observacionesHTML += '</tbody></table>';
+            observacionesDiv.innerHTML = observacionesHTML;
+        },
+    }
+}
+
+document.getElementById('viewPdfButton').addEventListener('click', function() {
+    window.open(`{{ route('buques.viewPdf', ['buque' => $buque->id]) }}`, '_blank');
+});
+</script>
+
+
 
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
@@ -610,6 +613,9 @@ function gresData() {
         #expanded-image {
             max-width: 90%;
             max-height: 90%;
+        }
+        button.bg-blue-500:hover{
+            background-color: #3b82f6;
         }
     </style>
 </x-app-layout>
